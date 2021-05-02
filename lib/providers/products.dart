@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shopping_app/providers/product.dart';
+import 'package:http/http.dart' as http;
 
 class Products with ChangeNotifier {
   List<Product> _items = [
@@ -64,15 +66,34 @@ class Products with ChangeNotifier {
   //   notifyListeners();
   // }
 
-  void addProduct(Product product) {
-    final newProduct = Product(
-        id: DateTime.now().toString(),
+  Future<void> addProduct(Product product) async {
+    final url = Uri.parse(
+        'https://shopping-app-e57b7-default-rtdb.asia-southeast1.firebasedatabase.app/products');
+    try {
+      final response = await http.post(
+        url,
+        body: json.encode({
+          'title': product.title,
+          'description': product.description,
+          'price': product.price,
+          'imageURL': product.imageURL,
+          'isFavorite': product.isFavorite,
+        }),
+      );
+      final newProduct = Product(
+        id: json.decode(response.body)['name'],
         title: product.title,
         description: product.description,
         price: product.price,
-        imageURL: product.imageURL);
-    _items.add(newProduct);
-    notifyListeners();
+        imageURL: product.imageURL,
+        // isFavorite: product.isFavorite,
+        // // We are not setting isFavorite because it is already false by default and we are not allowing user to deal with isFavorite initially.
+      );
+      _items.add(newProduct);
+      notifyListeners();
+    } catch (error) {
+      throw error;
+    }
   }
 
   void updateProduct(String id, Product newProduct) {
