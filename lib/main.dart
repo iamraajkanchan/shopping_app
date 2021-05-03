@@ -11,7 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:shopping_app/screens/user_products_screen.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(MyApp());  
 }
 
 class MyApp extends StatelessWidget {
