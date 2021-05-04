@@ -42,6 +42,11 @@ class Products with ChangeNotifier {
 
   // var _showFavoritesOnly = false;
 
+  final String authToken;
+  final String userId;
+
+  Products(this.authToken, this.userId, this._items);
+
   List<Product> get items {
     // if (_showFavoritesOnly) {
     //   return _items.where((productItem) => productItem.isFavorite);
@@ -68,16 +73,27 @@ class Products with ChangeNotifier {
   // }
   //
 
-  Future<void> fetchAndSetProducts() async {
-    final url = Uri.parse(
-        'https://shopping-app-e57b7-default-rtdb.asia-southeast1.firebasedatabase.app/products.json');
+  Future<void> fetchAndSetProducts([bool filterByUser = false]) async {
+    final filterString =
+        filterByUser ? 'orderBy="creatorId"&equalTo="$userId"' : '';
+
+    var url = Uri.parse(
+      'https://shopping-app-e57b7-default-rtdb.asia-southeast1.firebasedatabase.app/products.json?auth=$authToken&$filterString',
+    );
     try {
       final response = await http.get(url);
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
-      final List<Product> loadedProducts = [];
       if (extractedData == null) {
         return;
       }
+      url = Uri.parse(
+        'https://shopping-app-e57b7-default-rtdb.asia-southeast1.firebasedatabase.app/userFavorites/$userId.json?auth=$authToken',
+      );
+
+      final favoriteResponse = await http.get(url);
+      final favoriteData = json.decode(favoriteResponse.body);
+
+      final List<Product> loadedProducts = [];
       extractedData.forEach((productId, productData) {
         loadedProducts.add(Product(
           id: productId,
@@ -85,19 +101,20 @@ class Products with ChangeNotifier {
           description: productData['description'],
           price: productData['price'],
           imageURL: productData['imageURL'],
-          isFavorite: productData['isFavorite'],
+          isFavorite:
+              favoriteData == null ? false : favoriteData[productId] ?? false,
         ));
       });
       _items = loadedProducts;
       notifyListeners();
     } catch (error) {
-      throw error;
+      print(error);
     }
   }
 
   Future<void> addProduct(Product product) async {
     final url = Uri.parse(
-        'https://shopping-app-e57b7-default-rtdb.asia-southeast1.firebasedatabase.app/products.json');
+        'https://shopping-app-e57b7-default-rtdb.asia-southeast1.firebasedatabase.app/products.json?auth=$authToken');
     try {
       final response = await http.post(
         url,
@@ -106,7 +123,7 @@ class Products with ChangeNotifier {
           'description': product.description,
           'price': product.price,
           'imageURL': product.imageURL,
-          'isFavorite': product.isFavorite,
+          'creatorId': userId,
         }),
       );
       final newProduct = Product(
@@ -129,7 +146,7 @@ class Products with ChangeNotifier {
     final prodIndex = _items.indexWhere((product) => product.id == id);
     if (prodIndex >= 0) {
       final url = Uri.parse(
-          'https://shopping-app-e57b7-default-rtdb.asia-southeast1.firebasedatabase.app/products/$id.json');
+          'https://shopping-app-e57b7-default-rtdb.asia-southeast1.firebasedatabase.app/products/$id.json?auth=$authToken');
       await http.patch(url,
           body: json.encode({
             'title': newProduct.title,
@@ -146,7 +163,7 @@ class Products with ChangeNotifier {
 
   Future<void> deleteProduct(String id) async {
     final url = Uri.parse(
-        'https://shopping-app-e57b7-default-rtdb.asia-southeast1.firebasedatabase.app/products/$id.json');
+        'https://shopping-app-e57b7-default-rtdb.asia-southeast1.firebasedatabase.app/products/$id.json?auth=$authToken');
     final existingProductIndex =
         _items.indexWhere((product) => product.id == id);
     var existingProduct = _items[existingProductIndex];

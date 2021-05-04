@@ -10,6 +10,7 @@ import 'package:shopping_app/widgets/products_grid.dart';
 enum FilterOptions { Favorites, All }
 
 class ProductsOverviewScreen extends StatefulWidget {
+  static const routeName = '/products-overview';
   @override
   _ProductsOverviewScreenState createState() => _ProductsOverviewScreenState();
 }
@@ -32,10 +33,10 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
       setState(() {
         _isLoading = true;
       });
-      Provider.of<Products>(context).fetchAndSetProducts().then((_) {
-        setState(() {
+      Provider.of<Products>(context).fetchAndSetProducts(false).then((_) {
+        // setState(() {
           _isLoading = false;
-        });
+        // });
       });
     }
     _isInit = false;
