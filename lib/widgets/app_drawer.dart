@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shopping_app/helpers/custom_route.dart';
 import 'package:shopping_app/providers/auth.dart';
 import 'package:shopping_app/screens/orders_screen.dart';
 import 'package:shopping_app/screens/user_products_screen.dart';
@@ -31,7 +32,9 @@ class AppDrawer extends StatelessWidget {
             ),
             title: Text('Order'),
             onTap: () {
-              Navigator.of(context).pushReplacementNamed(OrderScreen.routeName);
+              // Navigator.of(context).pushReplacementNamed(OrderScreen.routeName);
+              Navigator.of(context).pushReplacement(
+                  CustomRoute(builder: (context) => OrderScreen()));
             },
           ),
           Divider(),
@@ -41,7 +44,8 @@ class AppDrawer extends StatelessWidget {
             ),
             title: Text('Manage Products'),
             onTap: () {
-              Navigator.of(context).pushReplacementNamed(UserProductsScreen.routeName);
+              Navigator.of(context)
+                  .pushReplacementNamed(UserProductsScreen.routeName);
             },
           ),
           Divider(),
